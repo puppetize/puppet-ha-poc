@@ -11,9 +11,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       multi.vm.box = "wheezy"
       multi.vm.box_url = "http://puppet-vagrant-boxes.puppetlabs.com/debian-70rc1-x64-vbox4210-nocm.box"
       multi.vm.hostname = "#{name}.vagrantup.com"
-      multi.vm.provision "shell", :inline => "wget http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb && dpkg -i puppetlabs-release-wheezy.deb && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qq puppet"
-      multi.vm.provision "puppet" do |puppet|
-        puppet.manifest_file = "puppet.pp"
+      multi.vm.provision "shell", :inline => "wget http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb && dpkg -i puppetlabs-release-wheezy.deb && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qq puppet puppetmaster-passenger"
+      multi.vm.provision "puppet_server" do |puppet|
+        puppet.puppet_server = "#{name}.vagrantup.com"
       end
     end
   end
