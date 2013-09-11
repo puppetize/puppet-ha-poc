@@ -1,0 +1,10 @@
+---
+gluster:
+  :ipaddress: 172.16.0.10
+  :instances: 2
+puppet:
+  :ipaddress: 172.16.0.20
+  :instances: 2
+agent:
+  :ipaddress: 172.16.0.30
+  :instances: 1

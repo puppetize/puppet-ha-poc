@@ -1,19 +1,34 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require 'yaml'
+
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  #config.vm.provider("virtualbox") { |v| v.gui = true }
 
-  %w{puppet1 puppet2}.each_with_index do |name, index|
-    config.vm.define name do |multi|
-      multi.vm.box = "wheezy"
-      multi.vm.box_url = "http://puppet-vagrant-boxes.puppetlabs.com/debian-70rc1-x64-vbox4210-nocm.box"
-      multi.vm.hostname = "#{name}.vagrantup.com"
-      multi.vm.network "private_network", ip: "172.16.0.#{10 + index}"
-      multi.vm.provision "shell", path: "puppet.sh"
+  order = %w{gluster puppet agent}
+
+  environment = YAML.load_file('environment.yaml').sort { |a, b|
+    order.index(a.first) <=> order.index(b.first)
+  }
+
+  environment.each do |role, details|
+    (1..details[:instances]).each do |instance|
+      hostname = "#{role}#{instance}"
+
+      octets = details[:ipaddress].split('.')
+      ipaddress = (octets[0..2] + [octets[3].to_i + instance - 1]).join('.')
+
+      config.vm.define hostname do |multi|
+        multi.vm.box = 'wheezy'
+        multi.vm.box_url = 'http://puppet-vagrant-boxes.puppetlabs.com/debian-70rc1-x64-vbox4210-nocm.box'
+        multi.vm.hostname = "#{hostname}.vagrantup.com"
+        multi.vm.network "private_network", ip: ipaddress
+        multi.vm.provision "shell", inline: "ruby /vagrant/provision.rb"
+      end
     end
   end
-
 end
