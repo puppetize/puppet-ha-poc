@@ -257,8 +257,6 @@ when 'puppet'
   # Install the Puppet packages.
   ensure_package 'puppet', 'puppetmaster-passenger'
 
-  # Ensure that the puppet directory has the right owner.
-  # sh 'chown puppet:puppet /var/lib/puppet'
   # Direct local Puppet runs to use the local master.
   ensure_host host.ipaddress, 'puppet'
 
