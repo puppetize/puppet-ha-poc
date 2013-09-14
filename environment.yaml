@@ -8,3 +8,6 @@ puppet:
 agent:
   :ipaddress: 172.16.0.30
   :instances: 1
+postgresql:
+  :ipaddress: 172.16.0.40
+  :instances: 2

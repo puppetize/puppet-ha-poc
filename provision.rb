@@ -58,6 +58,12 @@ def ensure_puppetlabs_repository
   end
 end
 
+# Wraps a command with sudo to execute something as another user
+def sudo(user, command)
+  require 'shellwords'
+  sh "sudo -i -u #{user} sh -c #{Shellwords.escape(command)}"
+end
+
 # Execute a shell command and exit from Ruby if it fails.
 def sh(command)
   puts "+ #{command}"
@@ -259,6 +265,15 @@ when 'puppet'
 
   # Direct local Puppet runs to use the local master.
   ensure_host host.ipaddress, 'puppet'
+
+when 'postgresql'
+
+  # Install the PostgreSQL package
+  ensure_package 'postgresql'
+
+  # Create puppetdb user/role and DB
+  sudo 'postgres', 'psql -c "CREATE USER puppetdb WITH PASSWORD \'puppetdb\'"'
+  sudo 'postgres', 'createdb -O puppetdb puppetdb'
 
 when 'agent'
   # Install Puppet from the PuppetLabs repository.
