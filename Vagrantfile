@@ -27,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         multi.vm.box_url = 'http://puppet-vagrant-boxes.puppetlabs.com/debian-70rc1-x64-vbox4210-nocm.box'
         multi.vm.hostname = "#{hostname}.vagrantup.com"
         multi.vm.network "private_network", ip: ipaddress
-        multi.vm.provision "shell", inline: "ruby /vagrant/provision.rb"
+        multi.vm.provision "shell", inline: "DEBIAN_FRONTEND=noninteractive apt-get install -qq ruby >/dev/null && ruby /vagrant/provision.rb"
       end
     end
   end

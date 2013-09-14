@@ -215,13 +215,9 @@ when 'puppet'
   volumes = {
     '/etc/puppet' => {
       :volume => 'puppet-confdir',
-      :owner  => 'root:root',
-      :mode   => '755'
     },
     '/var/lib/puppet/ssl' => {
       :volume => 'puppet-ssldir',
-      :owner  => 'puppet:root',
-      :mode   => '771'
     }
   }
 
@@ -231,12 +227,10 @@ when 'puppet'
     at((host.instance - 1) % 2).hostname
 
   # Ensure that the base directory for /var/lib/puppet/ssl exists and
-  # has correct permissions.  The "puppet" user already exists on the
-  # Vagrant box.
+  # has correct permissions (owner will be set later).
   unless File.directory? '/var/lib/puppet'
     sh 'mkdir /var/lib/puppet'
     sh 'chmod 750 /var/lib/puppet'
-    sh 'chown puppet:puppet /var/lib/puppet'
   end
 
   # Mount the glusterfs volumes.
@@ -251,8 +245,6 @@ when 'puppet'
 
     unless `mount`.include? device
       sh "mount #{mountpoint}"
-      sh "chmod #{details[:mode]} #{mountpoint}"
-      sh "chown #{details[:owner]} #{mountpoint}"
     end
   end
 
@@ -265,6 +257,8 @@ when 'puppet'
   # Install the Puppet packages.
   ensure_package 'puppet', 'puppetmaster-passenger'
 
+  # Ensure that the puppet directory has the right owner.
+  # sh 'chown puppet:puppet /var/lib/puppet'
   # Direct local Puppet runs to use the local master.
   ensure_host host.ipaddress, 'puppet'
 
