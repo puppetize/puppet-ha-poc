@@ -271,6 +271,12 @@ when 'agent'
     ensure_host h.ipaddress, 'puppet'
   end
 
+  # Ensure that dnsmasq doesn't forward lookups for "puppet" (without
+  # domain name).
+  unless File.exists? '/etc/dnsmasq.d/local'
+    sh "mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local"
+  end
+
   # Install packages and configure dnsmasq as the local resolver.
   ensure_package 'dnsmasq', 'resolvconf', 'puppet'
 
