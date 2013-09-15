@@ -266,7 +266,7 @@ when 'puppet'
   # Direct local Puppet runs to use the local master.
   ensure_host host.ipaddress, 'puppet'
 
-when 'postgresql'
+when 'postgres'
 
   # Install the PostgreSQL package
   ensure_package 'postgresql'
