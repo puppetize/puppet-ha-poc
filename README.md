@@ -1,5 +1,5 @@
-puppet-ha-poc
-=============
+Puppet HA: Proof-of-Concept
+===========================
 
 Simply `vagrant up` and wait.  Puppet clients `agent*` will be provisioned last.  If all
 goes well, then they will run `puppet agent -t` once against any master via DNS round-robin
