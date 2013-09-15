@@ -33,15 +33,15 @@ end
 
 # Check if a Debian package is already installed.
 def package_installed?(name)
-  system "dpkg -l #{name} 2>/dev/null >&2"
-  $?.exitstatus == 0
+  output = `dpkg -l #{name} 2>/dev/null`
+  $?.exitstatus == 0 and output.lines.any? { |line| line.split[0..1] == ['ii', name] }
 end
 
 # Ensure that the given packages are installed.
 def ensure_package(*names)
   uninstalled = names.reject { |name| package_installed? name }
   unless uninstalled.empty?
-    sh "DEBIAN_FRONTEND=noninteractive apt-get install -qq -y #{uninstalled.join ' '} >/dev/null"
+    sh %{DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq #{uninstalled.join ' '} >/dev/null}
   end
 end
 
