@@ -9,7 +9,7 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #config.vm.provider("virtualbox") { |v| v.gui = true }
 
-  order = %w{gluster postgres puppet agent}
+  order = %w{gluster puppet postgres puppetdb agent}
 
   environment = YAML.load_file('environment.yaml').sort { |a, b|
     order.index(a.first) <=> order.index(b.first)
