@@ -210,6 +210,15 @@ when 'gluster'
     end
   end
 
+when 'postgres'
+
+  # Install the PostgreSQL package
+  ensure_package 'postgresql'
+
+  # Create puppetdb user/role and DB
+  sudo 'postgres', 'psql -c "CREATE USER puppetdb WITH PASSWORD \'puppetdb\'"'
+  sudo 'postgres', 'createdb -O puppetdb puppetdb'
+
 when 'puppet'
   # Install Puppet from the PuppetLabs repository.
   ensure_puppetlabs_repository
@@ -266,14 +275,10 @@ when 'puppet'
   # Direct local Puppet runs to use the local master.
   ensure_host host.ipaddress, 'puppet'
 
-when 'postgres'
-
-  # Install the PostgreSQL package
-  ensure_package 'postgresql'
-
-  # Create puppetdb user/role and DB
-  sudo 'postgres', 'psql -c "CREATE USER puppetdb WITH PASSWORD \'puppetdb\'"'
-  sudo 'postgres', 'createdb -O puppetdb puppetdb'
+  # Install the official PuppetDB module.
+  unless File.exists? '/etc/puppet/modules/puppetdb'
+    sh "puppet module install puppetlabs/puppetdb"
+  end
 
 when 'agent'
   # Install Puppet from the PuppetLabs repository.
