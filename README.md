@@ -7,9 +7,9 @@ any master via DNS round-robin and then once against each available master,
 individually.  All Puppet runs should succeed.
 
 If you don't have the time or a powerful enough development machine, have
-a look at the file [[output.txt]].  It contains the output of the shell
-provisioner for a successful run of `vagrant up | egrep 'Machine booted and
-ready|Running provisioner|^[+]'`.
+a look at the file [output.txt](output.txt).  It contains the output of the
+shell provisioner for a successful run of `vagrant up | egrep 'Machine booted
+and ready|Running provisioner|^[+]'`.
 
 Requirements
 ------------
