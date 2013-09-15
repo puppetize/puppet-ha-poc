@@ -1,0 +1,131 @@
+[gluster1] Machine booted and ready!
+[gluster1] Running provisioner: shell...
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq glusterfs-server >/dev/null
++ mkdir -p /srv/puppet/confdir
++ mkdir -p /srv/puppet/ssldir
+[gluster2] Machine booted and ready!
+[gluster2] Running provisioner: shell...
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq glusterfs-server >/dev/null
++ mkdir -p /srv/puppet/confdir
++ mkdir -p /srv/puppet/ssldir
++ gluster peer probe gluster1
++ gluster volume create puppet-confdir replica 2 gluster1:/srv/puppet/confdir gluster2:/srv/puppet/confdir
++ gluster volume start puppet-confdir
++ gluster volume create puppet-ssldir replica 2 gluster1:/srv/puppet/ssldir gluster2:/srv/puppet/ssldir
++ gluster volume start puppet-ssldir
+[puppet1] Machine booted and ready!
+[puppet1] Running provisioner: shell...
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq glusterfs-client >/dev/null
++ mkdir /var/lib/puppet
++ chmod 750 /var/lib/puppet
++ mkdir -p /etc/puppet
++ mount /etc/puppet
++ mkdir -p /var/lib/puppet/ssl
++ mount /var/lib/puppet/ssl
++ mkdir -p /etc/puppet/manifests
++ mount -B /vagrant/manifests /etc/puppet/manifests
++ mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq dnsmasq resolvconf >/dev/null
++ wget -q -O puppetlabs-release-wheezy.deb http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb
++ dpkg -i puppetlabs-release-wheezy.deb >/dev/null
++ apt-get update -qq
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq puppet puppetmaster-passenger >/dev/null
++ echo allow_duplicate_certs = true >> /etc/puppet/puppet.conf && service apache2 restart
++ puppet module install puppetlabs/puppetdb
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/authorized_keys https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/id_rsa https://raw.github.com/mitchellh/vagrant/master/keys/vagrant
++ chmod 600 /root/.ssh/id_rsa
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console || true
+[puppet2] Machine booted and ready!
+[puppet2] Running provisioner: shell...
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq glusterfs-client >/dev/null
++ mkdir /var/lib/puppet
++ chmod 750 /var/lib/puppet
++ mkdir -p /etc/puppet
++ mount /etc/puppet
++ mkdir -p /var/lib/puppet/ssl
++ mount /var/lib/puppet/ssl
++ mkdir -p /etc/puppet/manifests
++ mount -B /vagrant/manifests /etc/puppet/manifests
++ mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq dnsmasq resolvconf >/dev/null
++ wget -q -O puppetlabs-release-wheezy.deb http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb
++ dpkg -i puppetlabs-release-wheezy.deb >/dev/null
++ apt-get update -qq
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq puppet puppetmaster-passenger >/dev/null
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/authorized_keys https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/id_rsa https://raw.github.com/mitchellh/vagrant/master/keys/vagrant
++ chmod 600 /root/.ssh/id_rsa
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console || true
+[postgres1] Machine booted and ready!
+[postgres1] Running provisioner: shell...
++ mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq dnsmasq resolvconf >/dev/null
++ wget -q -O puppetlabs-release-wheezy.deb http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb
++ dpkg -i puppetlabs-release-wheezy.deb >/dev/null
++ apt-get update -qq
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq puppet >/dev/null
++ puppet certificate generate postgres1.vagrantup.com --ca-location remote
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console || [ $? -eq 2 ]
+[puppetdb1] Machine booted and ready!
+[puppetdb1] Running provisioner: shell...
++ mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq dnsmasq resolvconf >/dev/null
++ wget -q -O puppetlabs-release-wheezy.deb http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb
++ dpkg -i puppetlabs-release-wheezy.deb >/dev/null
++ apt-get update -qq
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq puppet >/dev/null
++ puppet certificate generate puppetdb1.vagrantup.com --dns-alt-names puppetdb,puppetdb.vagrantup.com --ca-location remote || true
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/authorized_keys https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/id_rsa https://raw.github.com/mitchellh/vagrant/master/keys/vagrant
++ chmod 600 /root/.ssh/id_rsa
++ ssh -oStrictHostKeyChecking=no root@puppet1 puppet\ cert\ --allow-dns-alt-names\ sign\ puppetdb1.vagrantup.com
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console || [ $? -eq 2 ]
++ ssh -oStrictHostKeyChecking=no root@puppet1 puppet\ agent\ --onetime\ --ignorecache\ --no-daemonize\ --no-usecacheonfailure\ --detailed-exitcodes\ --no-splay\ --logdest\=console\ \|\|\ \[\ \$\?\ -eq\ 2\ \]
++ ssh -oStrictHostKeyChecking=no root@puppet2 service\ apache2\ restart
+[puppetdb2] Machine booted and ready!
+[puppetdb2] Running provisioner: shell...
++ mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq dnsmasq resolvconf >/dev/null
++ wget -q -O puppetlabs-release-wheezy.deb http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb
++ dpkg -i puppetlabs-release-wheezy.deb >/dev/null
++ apt-get update -qq
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq puppet >/dev/null
++ puppet certificate generate puppetdb2.vagrantup.com --dns-alt-names puppetdb,puppetdb.vagrantup.com --ca-location remote || true
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/authorized_keys https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub
++ mkdir -p /root/.ssh
++ wget -q -O /root/.ssh/id_rsa https://raw.github.com/mitchellh/vagrant/master/keys/vagrant
++ chmod 600 /root/.ssh/id_rsa
++ ssh -oStrictHostKeyChecking=no root@puppet1 puppet\ cert\ --allow-dns-alt-names\ sign\ puppetdb2.vagrantup.com
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console || [ $? -eq 2 ]
+[agent1] Machine booted and ready!
+[agent1] Running provisioner: shell...
++ mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq dnsmasq resolvconf >/dev/null
++ wget -q -O puppetlabs-release-wheezy.deb http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb
++ dpkg -i puppetlabs-release-wheezy.deb >/dev/null
++ apt-get update -qq
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq puppet >/dev/null
++ puppet certificate generate agent1.vagrantup.com --ca-location remote
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console || [ $? -eq 2 ]
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console --server=puppet1.vagrantup.com || [ $? -eq 2 ]
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console --server=puppet2.vagrantup.com || [ $? -eq 2 ]
+[agent2] Machine booted and ready!
+[agent2] Running provisioner: shell...
++ mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq dnsmasq resolvconf >/dev/null
++ wget -q -O puppetlabs-release-wheezy.deb http://apt.puppetlabs.com/puppetlabs-release-wheezy.deb
++ dpkg -i puppetlabs-release-wheezy.deb >/dev/null
++ apt-get update -qq
++ DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install -qq puppet >/dev/null
++ puppet certificate generate agent2.vagrantup.com --ca-location remote
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console || [ $? -eq 2 ]
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console --server=puppet1.vagrantup.com || [ $? -eq 2 ]
++ puppet agent --onetime --ignorecache --no-daemonize --no-usecacheonfailure --detailed-exitcodes --no-splay --logdest=console --server=puppet2.vagrantup.com || [ $? -eq 2 ]

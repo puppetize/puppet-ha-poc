@@ -20,8 +20,7 @@ node default
 
     /^puppet\d$/: {
       class { 'puppetdb::master::config':
-	# FIXME: "puppetdb" should be a load-balancer (or return multiple A records)
-        puppetdb_server     => "puppetdb1.${::domain}",
+        puppetdb_server     => 'puppetdb',
 	puppet_service_name => 'apache2',
       }
     }

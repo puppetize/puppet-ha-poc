@@ -2,6 +2,7 @@
 # Reads "environment.yaml" and provisions the current machine based
 # on its hostname.
 
+require 'shellwords'
 require 'yaml'
 
 # Add an entry to /etc/hosts, if it doesn't exist.
@@ -58,22 +59,69 @@ def ensure_puppetlabs_repository
   end
 end
 
+# Ensure that dnsmasq installed and used as the local resolver.
+def ensure_dnsmasq_resolvconf
+  # Ensure that dnsmasq doesn't forward lookups for plain host
+  # names without a domain name.
+  unless File.exists? '/etc/dnsmasq.d/local'
+    sh "mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local"
+  end
+
+  ensure_package 'dnsmasq', 'resolvconf'
+
+  # Ensure that the resolver is working and resolves external
+  # names.  That's done because dnsmasq may take a few seconds
+  # to start after the installation.
+  (1..10).each do |i|
+    `ping -c 1 apt.puppetlabs.com 2>/dev/null`
+    break if $?.exitstatus == 0
+    fail "can't resolve/reach apt.puppetlabs.com" if i == 10
+    sleep 1
+  end
+end
+
+# Ensure that this machine can be ssh'ed into as root from other
+# machines and that it can do so too.
+def ensure_root_ssh
+  unless File.exists? '/root/.ssh/authorized_keys'
+    sh "mkdir -p /root/.ssh"
+    sh "wget -q -O /root/.ssh/authorized_keys https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub"
+  end
+
+  unless File.exists? '/root/.ssh/id_rsa'
+    sh "mkdir -p /root/.ssh"
+    sh "wget -q -O /root/.ssh/id_rsa https://raw.github.com/mitchellh/vagrant/master/keys/vagrant"
+    sh "chmod 600 /root/.ssh/id_rsa"
+  end
+end
+
 # Ensure that the puppet agent is installed.
-def ensure_puppet_agent(config)
+def ensure_puppet_agent(config, options = {})
   # Add host entries for dnsmasq to return in a round-robin fashion.
   config.role('puppet').hosts.each do |h|
     ensure_host h.ipaddress, 'puppet'
   end
 
-  # Ensure that dnsmasq doesn't forward lookups for "puppet" (without
-  # domain name).
-  unless File.exists? '/etc/dnsmasq.d/local'
-    sh "mkdir -p /etc/dnsmasq.d && echo domain-needed > /etc/dnsmasq.d/local"
-  end
-
   # Install packages and configure dnsmasq as the local resolver.
+  ensure_dnsmasq_resolvconf
   ensure_puppetlabs_repository
-  ensure_package 'dnsmasq', 'resolvconf', 'puppet'
+  ensure_package 'puppet'
+
+  fqdn = `facter fqdn`.chomp
+
+  # Generate a new client certificate (box may have been reinstalled).
+  if `find /var/lib/puppet/ssl -type f 2>/dev/null`.empty?
+    if options[:dns_alt_names]
+      sh "puppet certificate generate #{fqdn} --dns-alt-names #{options[:dns_alt_names]} --ca-location remote || true"
+
+      config.role('puppet').hosts.each do |h|
+        ssh h.hostname, "puppet cert --allow-dns-alt-names sign #{fqdn}"
+        break
+      end
+    else
+      sh "puppet certificate generate #{fqdn} --ca-location remote"
+    end
+  end
 end
 
 # Ensure that the puppetlabs-puppetdb module is installed.
@@ -88,8 +136,7 @@ end
 
 # Wraps a command with sudo to execute something as another user
 def sudo(user, command)
-  require 'shellwords'
-  sh "sudo -i -u #{user} sh -c #{Shellwords.escape(command)}"
+  sh "sudo -i -u #{user} sh -c #{Shellwords.escape command}"
 end
 
 # Execute a shell command and exit from Ruby if it fails.
@@ -99,6 +146,13 @@ def sh(command)
   if $?.exitstatus != 0
     exit $?.exitstatus
   end
+end
+
+# Execute a shell command as root on another host.
+def ssh(hostname, command)
+  ensure_root_ssh
+
+  sh "ssh -oStrictHostKeyChecking=no root@#{hostname} #{Shellwords.escape command}"
 end
 
 # Build a "puppet agent" command line.
@@ -317,16 +371,28 @@ when 'puppet'
   # Direct local Puppet runs to use the local master.
   ensure_host host.ipaddress, 'puppet'
 
-  # Install the Puppet packages.
+  # Add host entries for dnsmasq to return in a round-robin fashion.
+  config.role('puppetdb').hosts.each do |h|
+    ensure_host h.ipaddress, "puppetdb", "puppetdb.#{`dnsdomainname`.chomp}"
+  end
+
+  # Install packages and configure dnsmasq as the local resolver.
+  ensure_dnsmasq_resolvconf
   ensure_puppetlabs_repository
   ensure_package 'puppet', 'puppetmaster-passenger'
+
+  # Allow new certificate to overwrite existing ones, for this
+  # Vagrant setup only, so we can run "vagrant destroy /agent/"
+  # and then "vagrant up /agent/".
+  unless File.read('/etc/puppet/puppet.conf').include? 'allow_duplicate_certs'
+    sh "echo allow_duplicate_certs = true >> /etc/puppet/puppet.conf && service apache2 restart"
+  end
+
+  # Install the puppetlabs-puppetdb module.
   ensure_puppet_module_puppetdb
 
   # Allow SSH login as root from other Vagrant boxes.
-  unless File.exists? '/root/.ssh/authorized_keys'
-    sh "mkdir -p /root/.ssh"
-    sh "wget -q -O /root/.ssh/authorized_keys https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub"
-  end
+  ensure_root_ssh
 
   # Ignore errors if no puppetdb is available yet.
   if config.role('puppetdb').hosts.none? { |h| h.up? }
@@ -342,15 +408,8 @@ when 'postgres'
 
 when 'puppetdb'
   # Set up the Puppet agent and run it.
-  ensure_puppet_agent config
+  ensure_puppet_agent config, :dns_alt_names => "puppetdb,puppetdb.#{`dnsdomainname`.chomp}"
   puppet_agent
-
-  # Allow this box to log in as root on "puppet" hosts.
-  unless File.exists? '/root/.ssh/id_rsa'
-    sh "mkdir -p /root/.ssh"
-    sh "wget -q -O /root/.ssh/id_rsa https://raw.github.com/mitchellh/vagrant/master/keys/vagrant"
-    sh "chmod 600 /root/.ssh/id_rsa"
-  end
 
   # Run puppet on all masters that are up.  Treat errors as fatal,
   # now that a "puppetdb" instance is available.  Do this only for
@@ -360,9 +419,9 @@ when 'puppetdb'
     config.role('puppet').hosts.each do |h|
       if h.up?
         if only_restart
-          sh "ssh -oStrictHostKeyChecking=no root@#{h.hostname} 'service apache2 restart'"
+          ssh h.hostname, "service apache2 restart"
         else
-          sh "ssh -oStrictHostKeyChecking=no root@#{h.hostname} '#{puppet_agent_command}'" if h.up?
+          ssh h.hostname, puppet_agent_command if h.up?
           only_restart = true
         end
       end
