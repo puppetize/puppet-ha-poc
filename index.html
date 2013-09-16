@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Puppet HA: Proof-of-Concept : Setting up a high-availability/load-balancing Puppet infrastructure, a Vagrant example scenario." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Puppet HA: Proof-of-Concept</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/puppetize/puppet-ha-poc">View on GitHub</a>
+
+          <h1 id="project_title">Puppet HA: Proof-of-Concept</h1>
+          <h2 id="project_tagline">Setting up a high-availability/load-balancing Puppet infrastructure, a Vagrant example scenario.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/puppetize/puppet-ha-poc/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/puppetize/puppet-ha-poc/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="puppet-ha-proof-of-concept" class="anchor" href="#puppet-ha-proof-of-concept"><span class="octicon octicon-link"></span></a>Puppet HA: Proof-of-Concept</h1>
+
+<p>Simply <code>vagrant up</code> and wait.  Puppet clients <code>agent*</code> will be provisioned
+last.  If all goes well, then they will run <code>puppet agent -t</code> once against
+any master via DNS round-robin and then once against each available master,
+individually.  All three runs should succeed.</p>
+
+<p>Now you can start shutting down instances of <strong>gluster</strong>, <strong>puppet</strong> or
+<strong>puppetdb</strong>.  Reinstallation of instances should also work for <strong>agent</strong>,
+<strong>puppet</strong> and <strong>puppetdb</strong>.</p>
+
+<p>If you don't have the time or a powerful enough development machine, have
+a look at the file <a href="output.txt">output.txt</a>.  It contains the output of the
+shell provisioner for a successful run of <code>vagrant up | egrep 'Machine booted
+and ready|Running provisioner|^[+]'</code>.</p>
+
+<h2>
+<a name="whats-missing" class="anchor" href="#whats-missing"><span class="octicon octicon-link"></span></a>What's Missing</h2>
+
+<p>We still need to work on a way to add/remove/reinstall <strong>gluster</strong> nodes
+and a high-availability/load-balancing setup for PostgreSQL (master plus
+hot-standby).  The latter task is tracked in
+<a href="https://github.com/puppetize/puppet-ha-poc/issues/1">issue #1</a>.</p>
+
+<h2>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<ul>
+<li>Vagrant (tested with 1.3.1)</li>
+<li>VirtualBox (tested with 4.2)</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Puppet HA: Proof-of-Concept maintained by <a href="https://github.com/puppetize">puppetize</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-40430933-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
