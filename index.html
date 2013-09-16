@@ -31,10 +31,7 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h1>
-<a name="puppet-halb-proof-of-concept" class="anchor" href="#puppet-halb-proof-of-concept"><span class="octicon octicon-link"></span></a>Puppet HA/LB: Proof-of-Concept</h1>
-
-<p>Simply <code>vagrant up</code> and wait.  Puppet clients <code>agent*</code> will be provisioned
+        <p>Simply <code>vagrant up</code> and wait.  Puppet clients <code>agent*</code> will be provisioned
 last.  If all goes well, then they will run <code>puppet agent -t</code> once against
 any master via DNS round-robin and then once against each available master,
 individually.  All three runs should succeed.</p>
